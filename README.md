@@ -14,6 +14,43 @@ Install it thought NPM:
 npm install ol-magic-wand
 ```
 
+## Usage
+
+```js
+
+import "ol/ol.css";
+import "./style.css";
+
+import { Map, View } from "ol";
+import { Tile as TileLayer } from "ol/layer";
+import { OSM } from "ol/source";
+import { defaults as defaultInteractions } from "ol/interaction";
+import MagicWand from "ol-magic-wand";
+
+let osm = new TileLayer({
+  source: new OSM()
+});
+
+let wand = new MagicWand({ 
+  layers: osm
+});
+
+const map = new Map({
+  target: "map",
+  interactions: defaultInteractions().extend([wand]),
+  layers: [osm],
+  view: new View({
+    center: [0, 0],
+    zoom: 2
+  })
+});
+
+```
+
+### Example usage:
+
+[Live example](https://stackblitz.com/edit/ol-magic-wand)
+
 ## License
 
 [MIT](https://opensource.org/licenses/MIT) (c) 2019, Ryasnoy Paul
