@@ -1,6 +1,6 @@
 {
     "name": "ol-magic-wand",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Magic Wand (selection tool by color differences) for Openlayers library",
     "main": "dist/ol-magic-wand.js",
     "scripts": {

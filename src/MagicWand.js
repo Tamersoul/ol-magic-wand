@@ -440,8 +440,8 @@ export class TileMask extends BaseObject {
 
     getRenderLayers_() {
         return this.layers == null ? [] : this.layers.filter(l => {
-            let c = l.getRenderer().context.canvas;
-            return l.getVisible() && l.getOpacity() > 0 && c.width > 0 && c.height > 0;
+            let ctx = l.getRenderer().context;
+            return ctx && l.getVisible() && l.getOpacity() > 0 && ctx.canvas.width > 0 && ctx.canvas.height > 0;
         }).sort((a, b) => a.getZIndex() - b.getZIndex());
     }
 
