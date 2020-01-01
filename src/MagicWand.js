@@ -633,8 +633,9 @@ export class TileMask extends BaseObject {
  * @property {string} [addClass] CSS class for map when "add mode" is turned on
  * @property {number} [hatchLength=4] Thickness of the stroke (in pixels)
  * @property {number} [hatchTimeout=300] Hatching redraw timeout (in ms)
- * @property {number} [colorThreshold=15] Tool parameter: Initial color threshold [1-255] (see method 'floodFill' in MagicWandLib.js)
- * @property {number} [blurRadius=5] Tool parameter: Blur radius [1-15] (see method 'gaussBlurOnlyBorder' in MagicWandLib.js)
+ * @property {number} [colorThreshold=15] Tool parameter: Initial color threshold [1-255] (see method 'floodFill' in 'magic-wand-tool')
+ * @property {number} [blurRadius=5] Tool parameter: Blur radius [1-15] (see method 'gaussBlurOnlyBorder' in 'magic-wand-tool')
+ * @property {boolean} [includeBorders=true] Tool parameter: Indicate whether to include borders pixels (see method 'floodFill' in 'magic-wand-tool')
  * @property {boolean} [addMode=true] Enable/disable a concatenation of masks ("add mode")
  * @property {boolean} [history=true] Enable/disable mask history functions: undo ('ctrl+z') and redo ('ctrl+y')
  * @property {boolean} [debugMode=false] Enable/disable debug functions: shows contours ('c' key) and current snapshot ('s' key)
@@ -678,6 +679,11 @@ export default class MagicWand extends PointerInteraction {
          * @type {number}
          */
         this.blurRadius = options.blurRadius == null ? 5 : options.blurRadius;
+
+        /**
+         * @type {boolean}
+         */
+        this.includeBorders = options.includeBorders == null ? true : options.includeBorders;
 
         /**
          * @private
@@ -736,13 +742,13 @@ export default class MagicWand extends PointerInteraction {
          * @private
          * @type {boolean}
          */
-        this.allowAdd_ = options.addMode != null ? options.addMode : true;
+        this.allowAdd_ = options.addMode == null ? true : options.addMode;
 
         /**
          * @private
          * @type {boolean}
          */
-        this.isDebug_ = options.debugMode != null ? options.debugMode : false;
+        this.isDebug_ = options.debugMode == null ? false : options.debugMode;
 
         if (options.waitClass) this.waitClass = options.waitClass;
         if (options.drawClass) this.drawClass = options.drawClass;
@@ -1264,7 +1270,7 @@ export default class MagicWand extends PointerInteraction {
             }
 
             // create a new mask considering the current visible data
-            mask = MagicWandLib.floodFill(image, x, y, this.currentThreshold_, this.oldMask_.visibleData, true);
+            mask = MagicWandLib.floodFill(image, x, y, this.currentThreshold_, this.oldMask_.visibleData, this.includeBorders);
             if (!mask) return false;
             // blur a new mask considering the current visible data
             if (this.blurRadius > 0) mask = MagicWandLib.gaussBlurOnlyBorder(mask, this.blurRadius, this.oldMask_.visibleData);
@@ -1278,7 +1284,7 @@ export default class MagicWand extends PointerInteraction {
             }
             mask = this.concatMask_(mask, this.oldMask_); // old mask + new mask
         } else {
-            mask = MagicWandLib.floodFill(image, x, y, this.currentThreshold_, null, true);
+            mask = MagicWandLib.floodFill(image, x, y, this.currentThreshold_, null, this.includeBorders);
             if (this.blurRadius > 0) mask = MagicWandLib.gaussBlurOnlyBorder(mask, this.blurRadius);
             mask.globalOffset = offset;
         }
@@ -1291,8 +1297,8 @@ export default class MagicWand extends PointerInteraction {
     /**
      * Return contours of binary mask
      * @param {function(Contour): boolean} [filter=null] Contour filter
-     * @param {number} [simplifyTolerant=1] Tool parameter: Simplify tolerant (see method 'simplifyContours' in MagicWandLib.js)
-     * @param {number} [simplifyCount=30] Tool parameter: Simplify count (see method 'simplifyContours' in MagicWandLib.js)
+     * @param {number} [simplifyTolerant=1] Tool parameter: Simplify tolerant (see method 'simplifyContours' in 'magic-wand-tool')
+     * @param {number} [simplifyCount=30] Tool parameter: Simplify count (see method 'simplifyContours' in 'magic-wand-tool')
      * @return Contour[] in a viewport basis
      */
     getContours(filter = null, simplifyTolerant = 1, simplifyCount = 30) {
