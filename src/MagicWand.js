@@ -357,6 +357,7 @@ export class TileMask extends BaseObject {
     }
 
     /**
+     * Force to recreate the snapshot
      */
     scan() {
         if (this.loading_ || !this.map) return;
