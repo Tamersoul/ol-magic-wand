@@ -1,0 +1,41 @@
+{
+    "name": "ol-magic-wand",
+    "version": "1.0.0",
+    "description": "Magic Wand (selection tool by color differences) for Openlayers library",
+    "main": "dist/ol-magic-wand.js",
+    "scripts": {
+        "rollup": "rollup -c",
+        "production": "npm run rollup --silent"
+    },
+    "homepage": "https://github.com/Tamersoul/ol-magic-wand",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Tamersoul/ol-magic-wand.git"
+    },
+    "keywords": [
+        "openlayers",
+        "map",
+        "magic-wand",
+        "selection",
+        "floodfill",
+        "contour"
+    ],
+    "author": "Ryasnoy Paul <ryasnoypaul@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Tamersoul/ol-magic-wand/issues"
+    },
+    "dependencies": {
+        "magic-wand-tool": "^1.1.4",
+        "ol": "^6.1.1"
+    },
+    "devDependencies": {
+        "rollup": "^1.27.13"
+    },
+    "files": [
+        "LICENSE",
+        "README.md",
+        "dist",
+        "src"
+    ]
+}
