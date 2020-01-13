@@ -4,7 +4,7 @@
 
 # Magic Wand (selection tool by color differences) for Openlayers library
 
-Creates binary mask and contours (vector data) from the specified layers of the map
+Creates a binary mask and contours (vector data) from the specified layers of the map
 
 ## Installation
 
@@ -19,7 +19,6 @@ npm install ol-magic-wand
 ```js
 
 import "ol/ol.css";
-import "./style.css";
 
 import { Map, View } from "ol";
 import { Tile as TileLayer } from "ol/layer";
@@ -44,6 +43,19 @@ const map = new Map({
     zoom: 1
   })
 });
+
+
+// set map layer or layers to create snapshot and to draw a mask
+wand.setLayers([/* some other layers */]);
+
+// get sequential arrays of points (contours) by the binary mask
+let contours = wand.getContours();
+
+// get a data of the current mask: 1-D binary array and top-left corner
+let mask = wand.getMask();
+
+// clear the current mask and remove it from the map view
+wand.clearMask();
 
 ```
 
