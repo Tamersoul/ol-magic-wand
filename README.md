@@ -2,7 +2,7 @@
 [![view on npm](http://img.shields.io/npm/v/ol-magic-wand.svg)](https://www.npmjs.org/package/ol-magic-wand)
 [![License: MIT](https://img.shields.io/github/license/tamersoul/ol-magic-wand.svg)](https://github.com/Tamersoul/ol-magic-wand/blob/master/LICENSE.txt)
 
-# Magic Wand (selection tool by color differences) for Openlayers library
+# Magic Wand (selection tool by color differences) for OpenLayers library
 
 Creates a binary mask and contours (vector data) from the specified layers of the map
 
