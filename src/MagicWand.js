@@ -40,17 +40,24 @@ import MagicWandLib from 'magic-wand-tool';
 
 /**
  * @typedef {Object} Contour
- * @property {Point[]} points
- * @property {boolean} inner
- * @property {number} label
- * @property {number} [initialCount]
+ * @property {Array<Point>} points Vertices of the polygon (closed figure)
+ * @property {boolean} inner Indicates whether the polygon is inside another
+ * @property {number} label Contour id
+ * @property {number} [initialCount] Length of the point array before simplifying
+ */
+
+/**
+ * @typedef {Object} OffsetMask
+ * @property {Uint8Array} data 1-D binary data array
+ * @property {Size} size Mask size
+ * @property {Point} offset Coordinates of the top-left corner in viewport basis
  */
 
 /**
  * @typedef {Object} PixelOffset
- * @property {number} x
- * @property {number} y
- * @property {number} width
+ * @property {number} x Left coordinate
+ * @property {number} y Top coordinate
+ * @property {number} width Length of the one world in pixels
  */
 
 /**
@@ -96,7 +103,7 @@ export class TileMask extends BaseObject {
         /**
          * Array of indices of a boundary points in the mask
          * @private
-         * @type {number[]}
+         * @type {Array<number>}
          */
         this.border_ = null;
 
@@ -438,6 +445,10 @@ export class TileMask extends BaseObject {
         layerCtx.drawImage(ctx.canvas, 0, 0, ctx.canvas.width, ctx.canvas.height, 0, 0, layerCtx.canvas.width, layerCtx.canvas.height);
     }
 
+    /**
+     * @private
+     * @return {Array<ol/layer/Layer>} renderable layers
+     */
     getRenderLayers_() {
         return this.layers == null ? [] : this.layers.filter(l => {
             let ctx = l.getRenderer().context;
@@ -445,6 +456,9 @@ export class TileMask extends BaseObject {
         }).sort((a, b) => a.getZIndex() - b.getZIndex());
     }
 
+    /**
+     * @private
+     */
     hatchTick_() {
         this.hatchOffset_ = (this.hatchOffset_ + 1) % (this.hatchLength * 2);
         return this.drawBorder(false);
@@ -593,7 +607,7 @@ export class TileMask extends BaseObject {
      * Get color of the snapshot by screen coordinates
      * @param {number} x
      * @param {number} y
-     * @return {number[]} RGBA color
+     * @return {Array<number>} RGBA color
      */
     getPixelColor(x, y) {
         var i = (y * this.size.w + x) * this.bytes;
@@ -655,7 +669,8 @@ export default class MagicWand extends PointerInteraction {
         super();
 
         /**
-         * Layer(s) for scanning 
+         * Layer(s) for scanning
+         * @protected
          * @type {ol/layer/Layer|Array<ol/layer/Layer>}
          */
         this.layers = options.layers;
@@ -692,12 +707,14 @@ export default class MagicWand extends PointerInteraction {
         this.currentThreshold_ = 0;
 
         /**
+         * History of binary masks
          * @type {MaskHistory}
          */
         this.history = options.history == false ? null : new MaskHistory();
 
         /**
          * Tile for displaying mask
+         * @private
          * @type {TileMask}
          */
         this.tileMask_ = null;
@@ -1073,7 +1090,6 @@ export default class MagicWand extends PointerInteraction {
     /**
      * @protected
      * @param {ol/Map} map
-     * @return {TileMask}
      */
     createMask(map) {
         let div = map.getTargetElement();
@@ -1085,24 +1101,11 @@ export default class MagicWand extends PointerInteraction {
     }
 
     /**
-     * Set the map layers to create snapshot and to draw a mask
-     * @param {ol/layer/Layer|Array<ol/layer/Layer>} layers Layer(s) for scanning
-     * @return {boolean}
-     */
-    setLayers(layers) {
-        if (!layers) return false;
-
-        this.layers = layers;
-
-        return !this.tileMask_ ? false : this.tileMask_.setLayers(layers);
-    }
-
-    /**
      * Concatenate mask and old mask
      * @private
      * @param {Mask} mask
      * @param {Mask} old
-     * @return {boolean}
+     * @return {Mask} concatenated mask
      */
     concatMask_(mask, old) {
         var data1 = old.data,
@@ -1294,14 +1297,30 @@ export default class MagicWand extends PointerInteraction {
         return true;
     }
 
+    //#endregion
+
+    //#region Public
+
+    /**
+     * Set map layers to create snapshot and to draw a mask
+     * @param {ol/layer/Layer|Array<ol/layer/Layer>} layers Layer(s) for scanning
+     * @return {boolean}
+     */
+    setLayers(layers) {
+        if (!layers) return false;
+
+        this.layers = layers;
+
+        return !this.tileMask_ ? false : this.tileMask_.setLayers(layers);
+    }
+
     /**
      * Return contours of binary mask
-     * @param {function(Contour): boolean} [filter=null] Contour filter
      * @param {number} [simplifyTolerant=1] Tool parameter: Simplify tolerant (see method 'simplifyContours' in 'magic-wand-tool')
      * @param {number} [simplifyCount=30] Tool parameter: Simplify count (see method 'simplifyContours' in 'magic-wand-tool')
-     * @return Contour[] in a viewport basis
+     * @return {Array<Contour>} Contours in the viewport basis
      */
-    getContours(filter = null, simplifyTolerant = 1, simplifyCount = 30) {
+    getContours(simplifyTolerant = 1, simplifyCount = 30) {
         if (!this.tileMask_.mask) return null;
 
         var offset = MagicWand.getMainWorldOffset(this.getMap()); // viewport offset in the main world
@@ -1314,24 +1333,58 @@ export default class MagicWand extends PointerInteraction {
             result = [];
 
         if (simplifyTolerant > 0) contours = MagicWandLib.simplifyContours(contours, simplifyTolerant, simplifyCount);
-        len = contours.length;
-        for (i = 0; i < len; i++) {
-            c = contours[i];
-            if (filter && filter(c) === false) continue;
-            points = c.points;
-            plen = points.length;
-            c.initialCount = c.initialCount || plen;
-            for (j = 0; j < plen; j++) {
-                points[j].x += dx;
-                points[j].y += dy;
-            }
-            result.push(contours[i]);
-        }
-        return result;
+
+        return contours.map(c => {
+            c.initialCount = c.initialCount || c.points.length;
+            c.points.forEach(p => {
+                p.x += dx;
+                p.y += dy;
+            });
+            return c;
+        });
     }
 
     /**
-     *  Clear the current mask and remove it from the map
+     * Get a data of the current mask
+     * @return {OffsetMask} Mask data in the viewport basis
+     */
+    getMask() {
+        if (this.tileMask_) {
+            let mask = this.tileMask_.mask;
+
+            let offset = MagicWand.getMainWorldOffset(this.getMap()); // viewport offset in the main world
+
+            let x, y, k = 0,
+                data = mask.data,
+                bounds = mask.bounds,
+                maskW = mask.width,
+                sw = bounds.maxX - bounds.minX + 1,
+                sh = bounds.maxY - bounds.minY + 1,
+                res = new Uint8Array(sw * sh);
+
+            for (y = bounds.minY; y <= bounds.maxY; y++) {
+                for (x = bounds.minX; x <= bounds.maxX; x++) {
+                    res[k++] = data[y * maskW + x];
+                }
+            }
+
+            return {
+                data: res,
+                size: {
+                    w: sw,
+                    h: sh
+                },
+                offset: {
+                    x: mask.globalOffset.x + bounds.minX - Math.round(offset.x),
+                    y: mask.globalOffset.y + bounds.minY - Math.round(offset.y)
+                }
+            };
+        }
+        return null;
+    }
+
+    /**
+     * Clear the current mask and remove it from the map view
      */
     clearMask() {
         if (this.tileMask_) {
