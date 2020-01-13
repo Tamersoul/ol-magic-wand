@@ -1,6 +1,6 @@
 {
     "name": "ol-magic-wand",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "description": "Magic Wand (selection tool by color differences) for Openlayers library",
     "main": "dist/ol-magic-wand.js",
     "scripts": {
@@ -13,6 +13,7 @@
         "url": "https://github.com/Tamersoul/ol-magic-wand.git"
     },
     "keywords": [
+        "ol",
         "openlayers",
         "map",
         "magic-wand",
